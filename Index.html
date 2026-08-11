@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Escala BK</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect fill='%231f2937' width='200' height='200' rx='30'/%3E%3Cellipse cx='100' cy='55' rx='75' ry='35' fill='%23374151'/%3E%3Cellipse cx='100' cy='85' rx='90' ry='40' fill='%23111827'/%3E%3C/svg%3E">
+    <style>
+        *{margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', Roboto, sans-serif;}
+        :root{
+            --p1: #0f172a; --p2: #111827; --p3: #1f2937;
+            --c1: #374151; --c2: #4b5563; --c3: #6b7280;
+            --t1: #e5e7eb; --t2: #9ca3af;
+            --destaque: #f97316; --sucesso: #22c55e; --aviso: #eab308; --erro: #ef4444;
+            --roxo: #7c3aed; --azul: #3b82f6; --verde: #22c55e; --laranja: #f97316; --vermelho: #ef4444;
+        }
+        body{background:linear-gradient(135deg, var(--p1), var(--p3)); min-height:100vh; display:flex; color:var(--t1);}
+        .sidebar{width:270px; height:100vh; position:fixed; left:0; top:0; background:linear-gradient(180deg, var(--p1), var(--p2)); padding:20px 12px; transition:0.35s; z-index:999; border-right:1px solid rgba(75,85,99,0.3);}
+        .sidebar.min{width:70px; padding:20px 6px;}
+        .sidebar.min .txt{display:none;}
+        .logo{text-align:center; margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid rgba(75,85,99,0.3);}
+        .logo h1{font-size:17px; color:var(--t1);}
+        .logo p{font-size:12px; color:var(--t2); margin-top:4px;}
+        .btn-menu{width:100%; padding:12px; margin-bottom:15px; background:var(--c1); color:#fff; border:none; border-radius:10px; font-weight:bold; cursor:pointer; transition:0.2s;}
+        .btn-menu:hover{background:var(--c2);}
+        .btn-pag{width:100%; padding:13px 10px; margin-bottom:8px; text-align:left; background:transparent; color:var(--t2); border:none; border-radius:10px; cursor:pointer; font-size:15px; transition:0.2s;}
+        .btn-pag:hover, .btn-pag.ativo{background:rgba(249,115,22,0.12); color:var(--destaque);}
+        .conteudo{margin-left:270px; padding:25px; width:100%; transition:0.35s;}
+        .conteudo.min{margin-left:70px;}
+        .pagina{display:none; animation:aparece 0.35s ease;}
+        .pagina.ativa{display:block;}
+        @keyframes aparece{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
+        .caixa{background:rgba(31,41,55,0.85); border-radius:16px; padding:24px; margin-bottom:20px; border:1px solid rgba(75,85,99,0.3);}
+        h2{color:var(--t1); margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid rgba(75,85,99,0.25);}
+        h3{color:var(--destaque); margin:24px 0 12px; font-size:16px;}
+        input{padding:8px 10px; border:1px solid var(--c1); border-radius:8px; background:rgba(17,24,39,0.6); color:var(--t1); font-size:14px; width:100%;}
+        input:focus{outline:none; border-color:var(--destaque);}
+        button{padding:10px 14px; background:var(--destaque); color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer; transition:0.2s; font-size:14px;}
+        button:hover{background:#ea580c;}
+        .btn-secundario{background:var(--c1);}
+        .btn-secundario:hover{background:var(--c2);}
+        .btn-apagar{background:var(--erro); padding:6px 10px; font-size:12px;}
+        .linha{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0; align-items:center;}
+        .linha input{flex:1; min-width:120px;}
+        .tag-pre{display:inline-block; background:rgba(234,179,8,0.15); color:#fcd34d; padding:2px 8px; border-radius:10px; font-size:12px;}
+        .tag-fech{display:inline-block; background:rgba(34,197,94,0.15); color:#86efac; padding:2px 8px; border-radius:10px; font-size:12px;}
+        .item-bloco{background:rgba(17,24,39,0.5); border-radius:10px; padding:14px; margin-bottom:10px; border-left:3px solid var(--c2);}
+        .cab-bloco{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+        .dica{background:rgba(249,115,22,0.06); border-left:4px solid var(--destaque); padding:14px; border-radius:10px; margin-bottom:15px;}
+        .dica p{color:var(--t2); font-size:14px;}
+
+        /* Estilo Bater Rota */
+        .pergunta{display:flex; align-items:center; justify-content:space-between; padding:14px; background:rgba(17,24,39,0.5); border-radius:10px; margin-bottom:10px; border-left:3px solid var(--c2);}
+        .pergunta p{font-size:15px; color:var(--t1);}
+        .botoes-resposta{display:flex; gap:8px;}
+        .btn-sim, .btn-nao{padding:6px 14px; border-radius:6px; font-weight:bold; font-size:14px; border:none; cursor:pointer; transition:0.2s;}
+        .btn-sim{background:transparent; color:var(--sucesso); border:2px solid var(--sucesso);}
+        .btn-sim.ativo{background:var(--sucesso); color:#fff;}
+        .btn-nao{background:transparent; color:var(--erro); border:2px solid var(--erro);}
+        .btn-nao.ativo{background:var(--erro); color:#fff;}
+        .horario-rota{color:var(--destaque); font-weight:bold; margin-bottom:15px; font-size:15px;}
+
+        /* Estilos da página Sobre / Cultura ZAMP */
+        .bloco-cultura{background:rgba(17,24,39,0.5); border-radius:12px; padding:18px; margin-bottom:16px;}
+        .bloco-cultura h4{font-size:15px; margin-bottom:10px; color:var(--laranja);}
+        .valores-zamp{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:10px; margin-top:10px;}
+        .valor-item{padding:10px 12px; border-radius:8px; font-size:14px; background:rgba(17,24,39,0.4); border-left:3px solid;}
+        .bussola-itens, .dna-itens{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
+        .bussola-item, .dna-item{padding:10px 12px; border-radius:8px; background:rgba(17,24,39,0.4); font-size:14px;}
+        .trilha{margin-top:12px; padding:16px; background:rgba(17,24,39,0.4); border-radius:10px;}
+        .trilha p{font-size:14px; line-height:1.7; color:var(--t1);}
+    </style>
+</head>
+<body>
+
+<div class="sidebar" id="menu">
+    <div class="logo">
+        <h1 class="txt">🍔 Sistema BK</h1>
+        <p class="txt">Escala & Controles</p>
+    </div>
+    <button class="btn-menu" onclick="alternarMenu()">☰ <span class="txt"> Minimizar</span></button>
+    <button class="btn-pag ativo" onclick="irPara('rota')">🔍 <span class="txt"> Bater Rota</span></button>
+    <button class="btn-pag" onclick="irPara('pre')">🟡 <span class="txt"> Pré-Fechamento</span></button>
+    <button class="btn-pag" onclick="irPara('fechamento')">🟢 <span class="txt"> Fechamento</span></button>
+    <button class="btn-pag" onclick="irPara('lembretes')">🔔 <span class="txt"> Lembretes</span></button>
+    <button class="btn-pag" onclick="irPara('controles')">🎯 <span class="txt"> Controles Úteis</span></button>
+    <button class="btn-pag" onclick="irPara('validade')">📅 <span class="txt"> Validade</span></button>
+    <button class="btn-pag" onclick="irPara('sobre')">ℹ️ <span class="txt"> Sobre</span></button>
+</div>
+
+<div class="conteudo" id="conteudo">
+
+    <!-- === BATER ROTA === -->
+    <div class="pagina ativa" id="pg-rota">
+        <div class="caixa">
+            <h2>🔍 Bater Rota</h2>
+            <div class="horario-rota">Horário previsto: 16:00</div>
+            <div id="perguntas-rota"></div>
+            <button onclick="resetarRota()" class="btn-secundario" style="margin-top:15px;">🔄 Resetar Verificação</button>
+        </div>
+    </div>
+
+    <!-- === PRÉ-FECHAMENTO === -->
+    <div class="pagina" id="pg-pre">
+        <div class="caixa">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid rgba(75,85,99,0.25);">
+                <h2>🟡 Pré-Fechamento</h2>
+                <button onclick="adicionarLinha('pre')">➕ Adicionar</button>
+            </div>
+            <div class="dica"><p>💡 Altere horário, atividade e responsável direto nas caixinhas. Salva automaticamente.</p></div>
+            <div id="lista-pre"></div>
+        </div>
+    </div>
+
+    <!-- === FECHAMENTO === -->
+    <div class="pagina" id="pg-fechamento">
+        <div class="caixa">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid rgba(75,85,99,0.25);">
+                <h2>🟢 Fechamento</h2>
+                <button onclick="adicionarLinha('fechamento')">➕ Adicionar</button>
+            </div>
+            <div class="dica"><p>💡 Altere horário, atividade e responsável direto nas caixinhas. Salva automaticamente.</p></div>
+            <div id="lista-fechamento"></div>
+        </div>
+    </div>
+
+    <!-- === LEMBRETES === -->
+    <div class="pagina" id="pg-lembretes">
+        <div class="caixa">
+            <h2>🔔 Lembretes</h2>
+            <div class="dica">
+                <strong>💡 Lembretes Rápidos:</strong>
+                <ul style="margin:10px 0 0 20px; color:var(--t2);">
+                    <li>Freezer de carne e frango: -18°C (±5°C)</li>
+                    <li>Registrar temperaturas a cada 2 horas</li>
+                    <li>Pré-fechamento inicia às 18h</li>
+                    <li>Verificar validades antes de usar</li>
+                </ul>
+            </div>
+            <h3>Adicionar Lembrete</h3>
+            <div class="linha">
+                <input type="text" id="novoLemb" placeholder="Digite seu lembrete...">
+                <button onclick="adicionarLembrete()">Salvar</button>
+            </div>
+            <h3>Meus Lembretes</h3>
+            <div id="listaLemb"></div>
+        </div>
+    </div>
+
+    <!-- === CONTROLES ÚTEIS === -->
+    <div class="pagina" id="pg-controles">
+        <div class="caixa">
+            <h2>🎯 Controles Úteis</h2>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:15px; margin-top:15px;">
+                <div style="background:rgba(17,24,39,0.5); padding:20px; border-radius:14px; text-align:center; border:1px solid rgba(75,85,99,0.3);">
+                    <div style="font-size:28px;">🌡️</div>
+                    <h3 style="margin:8px 0 4px;">Temperaturas</h3>
+                    <p style="color:var(--t2); font-size:14px;">Freezer: -18°C (±5°C)</p>
+                </div>
+                <div style="background:rgba(17,24,39,0.5); padding:20px; border-radius:14px; text-align:center; border:1px solid rgba(75,85,99,0.3);">
+                    <div style="font-size:28px;">🗑️</div>
+                    <h3 style="margin:8px 0 4px;">Desperdício</h3>
+                    <p style="color:var(--t2); font-size:14px;">Lançar perdas</p>
+                </div>
+                <div style="background:rgba(17,24,39,0.5); padding:20px; border-radius:14px; text-align:center; border:1px solid rgba(75,85,99,0.3);">
+                    <div style="font-size:28px;">📅</div>
+                    <h3 style="margin:8px 0 4px;">Folgas</h3>
+                    <p style="color:var(--t2); font-size:14px;">Controle de dias</p>
+                </div>
+                <div style="background:rgba(17,24,39,0.5); padding:20px; border-radius:14px; text-align:center; border:1px solid rgba(75,85,99,0.3);">
+                    <div style="font-size:28px;">📊</div>
+                    <h3 style="margin:8px 0 4px;">Relatório</h3>
+                    <p style="color:var(--t2); font-size:14px;">Resumo do dia</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === VALIDADE === -->
+    <div class="pagina" id="pg-validade">
+        <div class="caixa">
+            <h2>📅 Calculadora de Validade</h2>
+            <div class="linha">
+                <input type="date" id="dt">
+                <input type="number" id="dias" placeholder="Dias" min="1" style="max-width:100px;">
+                <button onclick="calcularValidade()">Calcular</button>
+            </div>
+            <div id="resVal" style="margin-top:15px; padding:15px; background:rgba(34,197,94,0.08); border-radius:10px; border-left:4px solid var(--sucesso); display:none;"></div>
+            <h3 style="margin-top:25px;">📦 Validades Pré-Cadastradas</h3>
+            <ul style="margin-left:20px; line-height:1.8; color:var(--t1);">
+                <li><strong>Maionese:</strong> 7 dias</li>
+                <li><strong>Molho Stacker:</strong> 3 dias</li>
+                <li><strong>Barbecue:</strong> 7 dias</li>
+                <li><strong>Cheddar:</strong> 5 dias</li>
+                <li><strong>Picles:</strong> 7 dias</li>
+                <li><strong>Queijo:</strong> 4 dias</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- === SOBRE — COM CULTURA ZAMP COMPLETA === -->
+    <div class="pagina" id="pg-sobre">
+        <div class="caixa">
+            <h2>ℹ️ Sobre — Cultura ZAMP</h2>
+
+            <!-- NOSSO SONHO -->
+            <div class="bloco-cultura">
+                <h4>🌟 Nosso Sonho</h4>
+                <p>Ser a melhor operadora de marcas de restaurantes do mundo, transformando positivamente a vida das pessoas.</p>
+            </div>
+
+            <!-- NOSSOS VALORES -->
+            <div class="bloco-cultura">
+                <h4>💎 Nossos Valores</h4>
+                <div class="valores-zamp">
+                    <div class="valor-item" style="border-color:var(--vermelho);">Pessoas no centro de tudo</div>
+                    <div class="valor-item" style="border-color:var(--laranja);">Você faz, você merece</div>
+                    <div class="valor-item" style="border-color:var(--azul);">Fazer o certo sem atalhos</div>
+                    <div class="valor-item" style="border-color:var(--verde);">Vibrar ao longo da jornada</div>
+                    <div class="valor-item" style="border-color:var(--roxo);">Coragem pra inovar</div>
+                    <div class="valor-item" style="border-color:#a855f7;">Humildade, sempre</div>
+                </div>
+                <p style="margin-top:12px; font-style:italic; color:var(--t2);">Esse negócio é nosso.</p>
+            </div>
+
+            <!-- BÚSSOLA -->
+            <div class="bloco-cultura">
+                <h4>🧭 Bússola — Onde queremos chegar</h4>
+                <div class="bussola-itens">
+                    <div class="bussola-item">Ser uma empresa dos sonhos para se trabalhar</div>
+                    <div class="bussola-item">Gerar impacto positivo através dos nossos compromissos ESG</div>
+                    <div class="bussola-item">Ter o crescimento mais acelerado e ser a mais rentável do segmento</div>
+                    <div class="bussola-item">Encantar nossos clientes com a melhor experiência</div>
+                    <div class="bussola-item">Construir as marcas mais amadas em suas categorias</div>
+                </div>
+            </div>
+
+            <!-- DNA-Z -->
+            <div class="bloco-cultura">
+                <h4>🧬 DNA-Z — Jeito de ser e fazer</h4>
+                <p style="font-size:14px; color:var(--t2); margin-bottom:10px;"><strong>Zamper:</strong> É obstinado por entregar resultados e explorar novos caminhos. Trabalha como dono, cuida do dia a dia.</p>
+                <div class="dna-itens">
+                    <div class="dna-item"><strong>É Protagonista</strong><br>Age como dono do negócio, busca jogo com autonomia e adaptabilidade para transformar sonhos em realidade.</div>
+                    <div class="dna-item"><strong>Faz Acontecer</strong><br>Entrega resultados consistentes do jeito certo, com disciplina de execução e persistência, mesmo em cenários adversos.</div>
+                    <div class="dna-item"><strong>Joga Junto</strong><br>Elimina silos e constrói pontes. Respeita todos, valoriza a diversidade e prioriza os resultados coletivos.</div>
+                    <div class="dna-item"><strong>Lidera</strong><br>Inspira, propicia um ambiente seguro e de confiança, desenvolve colaboradores, cuida da experiência das pessoas.</div>
+                </div>
+            </div>
+
+            <!-- TRILHA DE CARREIRA -->
+            <div class="bloco-cultura">
+                <h4>🚀 Trilha de Carreira</h4>
+                <div class="trilha">
+                    <p><strong>Atendente</strong> → 6 meses → <strong>L.T.</strong> → 6 meses → <strong>L.E.C.</strong><br>
+                    ↳ 6 meses → <strong>C.T.</strong> → 6 meses → <strong>Assistente Corporativo</strong> → 6 meses → <strong>Analista Corporativo</strong><br>
+                    <strong>C.T.</strong> → 12 meses → <strong>G.N.L.</strong><br>
+                    <strong>G.N.L.</strong> → 6 meses → <strong>Gerente Distrital</strong> → 6 meses → <strong>Gerente Regional</strong></p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+// === PERGUNTAS DO BATER ROTA ===
+const perguntasRota = [
+    {id:1, texto:'Áreas limpas e organizadas?'},
+    {id:2, texto:'Funcionários posicionados?'}
+];
+
+let respostasRota = JSON.parse(localStorage.getItem('respostasRotaBK')) || {};
+
+// === ESCALAS EDITÁVEIS ===
+let escalaPre = JSON.parse(localStorage.getItem('escalaPreBK')) || [
+    {hora:'18:00', atividade:'Lixeira + Freezer de Frango', responsavel:''},
+    {hora:'19:00', atividade:'Frozen', responsavel:''},
+    {hora:'20:00', atividade:'Freezer de Carne', responsavel:''},
+    {hora:'21:00', atividade:'Batateira', responsavel:''}
+];
+let escalaFechamento = JSON.parse(localStorage.getItem('escalaFechBK')) || [
+    {hora:'22:00', atividade:'Encerramento e limpeza geral', responsavel:''},
+    {hora:'22:30', atividade:'Conferência e fechamento de caixa', responsavel:''}
+];
+
+// === LEMBRETES ===
+let lembretes = JSON.parse(localStorage.getItem('lembretesBK')) || [];
+
+// === SALVAR ===
+function salvarEscalas(){
+    localStorage.setItem('escalaPreBK', JSON.stringify(escalaPre));
+    localStorage.setItem('escalaFechBK', JSON.stringify(escalaFechamento));
+    desenharEscalas();
+}
+function salvarRespostasRota(){
+    localStorage.setItem('respostasRotaBK', JSON.stringify(respostasRota));
+    desenharRota();
+}
+function salvarLembretes(){
+    localStorage.setItem('lembretesBK', JSON.stringify(lembretes));
+    desenharLembretes();
+}
+
+// === MENU ===
+function alternarMenu(){
+    document.getElementById('menu').classList.toggle('min');
+    document.getElementById('conteudo').classList.toggle('min');
+}
+function irPara(nome){
+    document.querySelectorAll('.pagina').forEach(p=>p.classList.remove('ativa'));
+    document.querySelectorAll('.btn-pag').forEach(b=>b.classList.remove('ativo'));
+    document.getElementById('pg-'+nome).classList.add('ativa');
+    event.currentTarget.classList.add('ativo');
+}
+
+// === BATER ROTA ===
+function desenharRota(){
+    const container = document.getElementById('perguntas-rota');
+    container.innerHTML = '';
+    perguntasRota.forEach(p=>{
+        const resp = respostasRota[p.id] || null;
+        const bloco = document.createElement('div');
+        bloco.className = 'pergunta';
+        bloco.innerHTML = `
+            <p>${p.texto}</p>
+            <div class="botoes-resposta">
+                <button class="btn-sim ${resp==='sim'?'ativo':''}" onclick="responder(${p.id}, 'sim')">✅ Sim</button>
+                <button class="btn-nao ${resp==='nao'?'ativo':''}" onclick="responder(${p.id}, 'nao')">❌ Não</button>
+            </div>
+        `;
+        container.appendChild(bloco);
+    });
+}
+function responder(id, valor){
+    respostasRota[id] = valor;
+    salvarRespostasRota();
+}
+function resetarRota(){
+    if(confirm('Resetar todas as respostas da rota?')){
+        respostasRota = {};
+        salvarRespostasRota();
+    }
+}
+
+// === DESENHAR ESCALAS ===
+function desenharEscalas(){
+    // Pré-Fechamento
+    const listaPre = document.getElementById('lista-pre');
+    listaPre.innerHTML = '';
+    escalaPre.forEach((item, i)=>{
+        const bloco = document.createElement('div');
+        bloco.className = 'item-bloco';
+        bloco.innerHTML = `
+            <div class="cab-bloco">
+                <span class="tag-pre">Pré-Fechamento</span>
+                <button class="btn-apagar" onclick="apagarLinha('pre', ${i})">🗑️</button>
+            </div>
+            <div class="linha">
+                <input type="time" value="${item.hora}" onchange="alterarCampo('pre', ${i}, 'hora', this.value)">
+                <input type="text" placeholder="Atividade" value="${item.atividade}" oninput="alterarCampo('pre', ${i}, 'atividade', this.value)">
+                <input type="text" placeholder="Responsável" value="${item.responsavel}" oninput="alterarCampo('pre', ${i}, 'responsavel', this.value)" style="max-width:150px;">
+            </div>
+        `;
+        listaPre.appendChild(bloco);
+    });
+
+    // Fechamento
+    const listaFech = document.getElementById('lista-fechamento');
+    listaFech.innerHTML = '';
+    escalaFechamento.forEach((item, i)=>{
+        const bloco = document.createElement('div');
+        bloco.className = 'item-bloco';
+        bloco.innerHTML = `
+            <div class="cab-bloco">
+                <span class="tag-fech">Fechamento</span>
+                <button class="btn-apagar" onclick="apagarLinha('fechamento', ${i})">🗑️</button>
+            </div>
+            <div class="linha">
+                <input type="time" value="${item.hora}" onchange="alterarCampo('fechamento', ${i}, 'hora', this.value)">
+                <input type="text" placeholder="Atividade" value="${item.atividade}" oninput="alterarCampo('fechamento', ${i}, 'atividade', this.value)">
+                <input type="text" placeholder="Responsável" value="${item.responsavel}" oninput="alterarCampo('fechamento', ${i}, 'responsavel', this.value)" style="max-width:150px;">
+            </div>
+        `;
+        listaFech.appendChild(bloco);
+    });
+}
+function alterarCampo(tipo, indice, campo, valor){
+    const lista = tipo==='pre' ? escalaPre : escalaFechamento;
+    lista[indice][campo] = valor;
+    salvarEscalas();
+}
+function adicionarLinha(tipo){
+    const nova = {hora:'00:00', atividade:'', responsavel:''};
+    tipo==='pre' ? escalaPre.push(nova) : escalaFechamento.push(nova);
+    salvarEscalas();
+}
+function apagarLinha(tipo, indice){
+    if(confirm('Excluir esta linha?')){
+        tipo==='pre' ? escalaPre.splice(indice,1) : escalaFechamento.splice(indice,1);
+        salvarEscalas();
+    }
+}
+
+// === LEMBRETES ===
+function desenharLembretes(){
+    const lista = document.getElementById('listaLemb');
+    lista.innerHTML = '';
+    lembretes.forEach((texto, i)=>{
+        const item = document.createElement('div');
+        item.style = 'display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:rgba(17,24,39,0.5); border-radius:8px; margin-bottom:8px;';
+        item.innerHTML = `<span>${texto}</span><button class="btn-apagar" onclick="remLembrete(${i})">🗑️</button>`;
+        lista.appendChild(item);
+    });
+}
+function adicionarLembrete(){
+    const campo = document.getElementById('novoLemb');
+    const texto = campo.value.trim();
+    if(!texto) return alert('Digite algo!');
+    lembretes.push(texto);
+    campo.value='';
+    salvarLembretes();
+}
+function remLembrete(indice){
+    lembretes.splice(indice,1);
+    salvarLembretes();
+}
+
+// === VALIDADE ===
+function calcularValidade(){
+    const dt = document.getElementById('dt').value;
+    const dias = parseInt(document.getElementById('dias').value);
+    if(!dt || !dias) return alert('Preencha a data e os dias!');
+    const data = new Date(dt);
+    data.setDate(data.getDate() + dias);
+    const fim = data.toLocaleDateString('pt-BR', {timeZone:'UTC'});
+    const res = document.getElementById('resVal');
+    res.style.display='block';
+    res.innerHTML = `✅ Validade de <strong>${dias}</strong> dias<br>📅 Vence em: <strong>${fim}</strong>`;
+}
+
+// === INICIAR TUDO ===
+window.onload = function(){
+    desenharRota();
+    desenharEscalas();
+    desenharLembretes();
+};
+</script>
+</body>
+</html>
